@@ -48,6 +48,7 @@ QUnit.module('LiveTracker', () => {
 
       this.liveTracker = this.player.liveTracker;
       this.player.duration(Infinity);
+      this.player.paused = () => false;
 
       this.liveEdgeChanges = 0;
 
@@ -62,7 +63,6 @@ QUnit.module('LiveTracker', () => {
   });
 
   QUnit.test('Triggers liveedgechange when we fall behind and catch up', function(assert) {
-
     this.liveTracker.options_.liveTolerance = 6;
     this.player.seekable = () => createTimeRanges(0, 20);
     this.player.trigger('timeupdate');
@@ -79,6 +79,39 @@ QUnit.module('LiveTracker', () => {
 
     assert.equal(this.liveEdgeChanges, 2, 'should have two live edge change');
     assert.ok(this.liveTracker.atLiveEdge(), 'at live edge');
+  });
+
+  QUnit.test('is behindLiveEdge when paused', function(assert) {
+    this.liveTracker.options_.liveTolerance = 6;
+    this.player.seekable = () => createTimeRanges(0, 20);
+    this.player.trigger('timeupdate');
+    this.player.currentTime = () => 20;
+    this.clock.tick(1000);
+
+    assert.ok(this.liveTracker.atLiveEdge(), 'at live edge');
+
+    this.player.paused = () => true;
+    this.player.trigger('pause');
+
+    assert.equal(this.liveEdgeChanges, 1, 'should have one live edge change');
+    assert.ok(this.liveTracker.behindLiveEdge(), 'behindLiveEdge live edge');
+  });
+
+  QUnit.test('is behindLiveEdge when seeking backwards', function(assert) {
+    this.liveTracker.options_.liveTolerance = 6;
+    this.player.seekable = () => createTimeRanges(0, 20);
+    this.player.trigger('timeupdate');
+    this.player.currentTime = () => 20;
+    this.clock.tick(1000);
+
+    assert.ok(this.liveTracker.atLiveEdge(), 'at live edge');
+
+    this.player.trigger('seeking');
+    this.player.currentTime = () => 19;
+    this.player.trigger('seeked');
+
+    assert.equal(this.liveEdgeChanges, 1, 'should have one live edge change');
+    assert.ok(this.liveTracker.behindLiveEdge(), 'behindLiveEdge live edge');
   });
 
   QUnit.test('pastSeekEnd should update when seekable changes', function(assert) {

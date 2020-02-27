@@ -14,6 +14,7 @@ QUnit.module('SeekToLive', {
     };
 
     this.mockLiveui = () => {
+      this.player.paused = () => false;
       this.player.hasStarted = () => true;
       this.player.options_.liveui = true;
       this.player.currentTime = () => this.player.liveTracker.liveCurrentTime();
@@ -39,7 +40,7 @@ QUnit.test('liveui enabled, can switch between at and behind live edge ', functi
   assert.notOk(this.seekToLive.hasClass('vjs-at-live-edge'), 'does not have at live edge class');
 });
 
-QUnit.test('liveui enabledcan show/hide on durationchange', function(assert) {
+QUnit.test('liveui enabled can show/hide on durationchange', function(assert) {
   // start out non-live
   assert.equal(this.getComputedDisplay(), 'none', 'is hidden');
   assert.notOk(this.seekToLive.hasClass('vjs-at-live-edge'), 'does not have at live edge class');
@@ -67,6 +68,7 @@ QUnit.test('liveui disabled live window is never shown', function(assert) {
   assert.equal(this.getComputedDisplay(), 'none', 'is hidden');
   assert.notOk(this.seekToLive.hasClass('vjs-at-live-edge'), 'does not have at live edge class');
 
+  this.player.paused = () => false;
   this.player.hasStarted = () => true;
   this.player.currentTime = () => this.player.liveTracker.liveCurrentTime();
 
